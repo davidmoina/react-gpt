@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import {
   GptMessage,
+  GptOrthographyMessage,
   MyMessage,
   TextMessageBox,
   TypingLoader,
 } from '../../components';
+import { orthographyUseCase } from '../../../core/use-cases';
 
 interface Message {
   text: string;
   isGTP: boolean;
+  info?: {
+    userScore: number;
+    errors: string[];
+    message: string;
+  };
 }
 
 export const OrthographyPage = () => {
@@ -17,8 +24,31 @@ export const OrthographyPage = () => {
 
   const handlePost = async (text: string) => {
     setIsLoading(true);
-
     setMessages((prev) => [...prev, { text, isGTP: false }]);
+
+    const { ok, message, userScore, errors } = await orthographyUseCase(text);
+
+    console.log(errors);
+
+    if (!ok) {
+      setMessages((prev) => [
+        ...prev,
+        { text: 'No se puedo realizar la corrección', isGTP: true },
+      ]);
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: message,
+          isGTP: true,
+          info: {
+            errors,
+            message,
+            userScore,
+          },
+        },
+      ]);
+    }
 
     setIsLoading(false);
   };
@@ -30,11 +60,16 @@ export const OrthographyPage = () => {
           {/* Welcome message */}
           <GptMessage text="Soy tu asistente personal, puedes preguntarme lo que quieras" />
 
-          {messages.map((message, index) =>
-            message.isGTP ? (
-              <GptMessage key={index} text="Esto es de OpenAI" />
+          {messages.map(({ info, isGTP, text }, index) =>
+            isGTP ? (
+              <GptOrthographyMessage
+                key={index}
+                errors={info!.errors}
+                message={info!.message}
+                userScore={info!.userScore}
+              />
             ) : (
-              <MyMessage key={index} text={message.text} />
+              <MyMessage key={index} text={text} />
             )
           )}
 
@@ -48,7 +83,7 @@ export const OrthographyPage = () => {
 
       <TextMessageBox
         onSendMessage={handlePost}
-        placeholder="Escribe cualquier pregunta"
+        placeholder="Escribe un texto comprobar la ortografía"
         disableCorrections
       />
     </div>
