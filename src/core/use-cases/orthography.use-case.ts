@@ -19,8 +19,6 @@ export const orthographyUseCase = async (prompt: string) => {
 
     const data = (await resp.json()) as OrthographyResponse;
 
-    console.log(data);
-
     return {
       ok: true,
       ...data,
@@ -30,7 +28,7 @@ export const orthographyUseCase = async (prompt: string) => {
       ok: false,
       userScore: 0,
       errors: [],
-      message: 'error correcting spelling',
+      message: 'Error corrigiendo el texto',
     };
   }
 };
