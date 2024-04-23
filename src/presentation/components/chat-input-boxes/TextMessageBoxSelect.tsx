@@ -4,7 +4,7 @@ interface Props {
   onSendMessage: (message: string, option: string) => void;
   placeholder?: string;
   disableCorrections?: boolean;
-  option: Option[];
+  options: Option[];
 }
 
 interface Option {
@@ -16,7 +16,7 @@ export const TextMessageBoxSelect = ({
   onSendMessage,
   disableCorrections = false,
   placeholder,
-  option,
+  options,
 }: Props) => {
   const [message, setMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
@@ -25,6 +25,7 @@ export const TextMessageBoxSelect = ({
     e.preventDefault();
 
     if (message.trim().length === 0) return;
+    if (!selectedOption) return;
 
     onSendMessage(message, selectedOption);
 
@@ -58,7 +59,7 @@ export const TextMessageBoxSelect = ({
             onChange={(e) => setSelectedOption(e.target.value)}
           >
             <option value="">Seleccione</option>
-            {option.map((option) => (
+            {options.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.text}
               </option>
