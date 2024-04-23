@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   GptMessage,
   MyMessage,
   TypingLoader,
   TextMessageBoxSelect,
 } from '../../components';
-import { translateTextUseCase } from '../../../core/use-cases';
+import { translateTextStreamUseCase } from '../../../core/use-cases';
 
 const languages = [
   { id: 'alemán', text: 'Alemán' },
@@ -27,31 +27,42 @@ interface Message {
 }
 
 export const TranslatePage = () => {
+  const abortController = useRef(new AbortController());
+  const isRunning = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
   const handlePost = async (text: string, selectedOption: string) => {
+    if (isRunning.current) {
+      abortController.current.abort();
+      abortController.current = new AbortController();
+    }
+
     setIsLoading(true);
 
     const newMessage = `Traduce: "${text}" al idioma ${selectedOption}`;
 
     setMessages((prev) => [...prev, { text: newMessage, isGTP: false }]);
 
-    const { message, ok } = await translateTextUseCase(text, selectedOption);
-
-    if (!ok) {
-      setMessages((prev) => [...prev, { text: message, isGTP: true }]);
-    } else {
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: message,
-          isGTP: true,
-        },
-      ]);
-    }
+    const stream = translateTextStreamUseCase(
+      text,
+      selectedOption,
+      abortController.current.signal
+    );
 
     setIsLoading(false);
+
+    setMessages((messages) => [...messages, { text: '', isGTP: true }]);
+
+    for await (const text of stream) {
+      setMessages((messages) => {
+        const newMessages = [...messages];
+        newMessages[newMessages.length - 1].text = text;
+        return newMessages;
+      });
+    }
+
+    isRunning.current = false;
   };
 
   return (
