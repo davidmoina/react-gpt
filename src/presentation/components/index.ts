@@ -3,6 +3,8 @@ export * from './chat-bubbles/GPTMessage';
 export * from './chat-bubbles/MyMessage';
 export * from './chat-bubbles/GTPOrthographyMessage';
 export * from './chat-bubbles/GPTMessageAudio';
+export * from './chat-bubbles/GPTMessageImage';
+export * from './chat-bubbles/GPTMessageSelectableImage';
 export * from './loaders/TypingLoader';
 export * from './chat-input-boxes/TextMessageBox';
 export * from './chat-input-boxes/TextMessageBoxFile';
