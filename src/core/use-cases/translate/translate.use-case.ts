@@ -1,4 +1,4 @@
-import { TranslateResponse } from '../../interfaces';
+import { TranslateResponse } from '../../../interfaces';
 
 export const translateTextUseCase = async (text: string, lang: string) => {
   try {
